@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secondary 1 FCE Self-Directed Learning Hub</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Load Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Configure Tailwind theme colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        m1: { 100: '#fce7f3', 500: '#ec4899', 800: '#831843' }, // Pink for Poster
+                        m2: { 100: '#fef3c7', 500: '#f59e0b', 800: '#92400e' }, // Amber for Food Safety
+                        m3: { 100: '#dcfce7', 500: '#22c55e', 800: '#166534' }, // Green for Nutrition
+                        m4: { 100: '#dbeafe', 500: '#3b82f6', 800: '#1e40af' }, // Blue for Money Management
+                        m5: { 100: '#f3e8ff', 500: '#a855f7', 800: '#6b21a8' }, // Purple for Consumer
+                        m6: { 100: '#f1f5f9', 500: '#64748b', 800: '#334155' }, // Slate for Exit Ticket
+                        m7: { 100: '#ffedd5', 500: '#f97316', 800: '#9a3412' }  // Orange for Bonus
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom CSS for animations and print styling -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .quiz-card { transition: all 0.2s ease; }
+        .quiz-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        
+        /* Interactive flip card for concepts */
+        .flip-card { background-color: transparent; height: 150px; perspective: 1000px; cursor: pointer; }
+        .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
+        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; padding: 1rem; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .flip-card-front { background-color: white; border: 2px solid #e2e8f0; }
+        .flip-card-back { transform: rotateY(180deg); color: white; }
+        .flip-m4 .flip-card-back { background-color: #3b82f6; }
+
+        /* Print styles */
+        @media print {
+            body { background-color: white; }
+            #sidebar, #mobile-nav, .no-print { display: none !important; }
+            main { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+            .print-only { display: block !important; }
+            .module-content { display: block !important; page-break-inside: avoid; }
+            .shadow-md { box-shadow: none !important; border: 1px solid #ccc; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- Mobile Header -->
+    <header id="mobile-nav" class="md:hidden bg-white shadow-sm p-4 flex justify-between items-center z-10 relative">
+        <div class="font-bold text-lg text-slate-800"><i class="fa-solid fa-graduation-cap text-m6-500 mr-2"></i>FCE Hub</div>
+        <button id="mobile-menu-btn" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+            <i class="fa-solid fa-bars text-2xl"></i>
+        </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="bg-white w-full md:w-72 shadow-lg flex flex-col h-[calc(100vh-60px)] md:h-screen absolute md:relative z-20 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+        <div class="p-6 border-b hidden md:block">
+            <h1 class="font-bold text-xl text-slate-800 flex items-center">
+                <i class="fa-solid fa-graduation-cap text-m6-500 mr-3 text-2xl"></i> Sec 1 FCE
+            </h1>
+            <p class="text-xs text-gray-500 mt-1">Self-Directed Learning Hub</p>
+        </div>
+
+        <!-- Progress Overview -->
+        <div class="p-4 border-b bg-slate-50">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-semibold text-slate-700">Overall Progress</span>
+                <span id="overall-progress-text" class="text-sm font-bold text-m6-500">0%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div id="overall-progress-bar" class="bg-m6-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="flex-1 overflow-y-auto p-4 space-y-2" id="nav-links">
+            <button onclick="switchModule(1)" id="nav-m1" class="w-full text-left px-4 py-3 rounded-lg flex items-center transition-colors hover:bg-m1-100 text-gray-700 group">
+                <div class="w-8 h-8 rounded-full bg-m1-100 text-m1-500 flex items-center justify-center mr-3 group-hover:bg-m1-500 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-palette"></i>
+                </div>
+                <span class="font-medium text-sm">1. Poster Making</span>
+                <i id="check-m1" class="fa-solid fa-circle-check text-m1-500 ml-auto hidden"></i>
+            </button>
+
+            <button onclick="switchModule(2)" id="nav-m2" class="w-full text-left px-4 py-3 rounded-lg flex items-center transition-colors hover:bg-m2-100 text-gray-700 group">
+                <div class="w-8 h-8 rounded-full bg-m2-100 text-m2-500 flex items-center justify-center mr-3 group-hover:bg-m2-500 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <span class="font-medium text-sm">2. Food Safety</span>
+                <i id="check-m2" class="fa-solid fa-circle-check text-m2-500 ml-auto hidden"></i>
+            </button>
+            
+            <button onclick="switchModule(3)" id="nav-m3" class="w-full text-left px-4 py-3 rounded-lg flex items-center transition-colors hover:bg-m3-100 text-gray-700 group">
+                <div class="w-8 h-8 rounded-full bg-m3-100 text-m3-500 flex items-center justify-center mr-3 group-hover:bg-m3-500 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-apple-whole"></i>
+                </div>
+                <span class="font-medium text-sm">3. Nutrition & Health</span>
+                <i id="check-m3" class="fa-solid fa-circle-check text-m3-500 ml-auto hidden"></i>
+            </button>
+
+            <button onclick="switchModule(4)" id="nav-m4" class="w-full text-left px-4 py-3 rounded-lg flex items-center transition-colors hover:bg-m4-100 text-gray-700 group">
+                <div class="w-8 h-8 rounded-full bg-m4-100 text-m4-500 flex items-center justify-center mr-3 group-hover:bg-m4-500 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <span class="font-medium text-sm">4. Money Management</span>
+                <i id="check-m4" class="fa-solid fa-circle-check text-m4-500 ml-auto hidden"></i>
+            </button>
+
+            <button onclick="switchModule(5)" id="nav-m5" class="w-full text-left px-4 py-3 rounded-lg flex items-center transition-colors hover:bg-m5-100 text-gray-700 group">
+                <div class="w-8 h-8 rounded-full bg-m5-100 text-m5-500 flex items-center justify-center mr-3 group-hover:bg-m5-500 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                </div>
+                <span class="font-medium text-sm">5. Discerning Consumer</span>
+                <i id="check-m5" class="fa-solid fa-circle-check text-m5-500 ml-auto hidden"></i>
+            </button>
+
+            <button onclick="switchModule(6)" id="nav-m6" class="w-full text-left px-4 py-3 rounded-lg flex items-center transition-colors hover:bg-m6-100 text-gray-700 group mt-4 border border-dashed border-gray-300">
+                <div class="w-8 h-8 rounded-full bg-m6-100 text-m6-500 flex items-center justify-center mr-3 group-hover:bg-m6-500 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <span class="font-medium text-sm">6. Exit Ticket</span>
+                <i id="check-m6" class="fa-solid fa-circle-check text-m6-500 ml-auto hidden"></i>
+            </button>
+            
+            <button onclick="switchModule(7)" id="nav-m7" class="w-full text-left px-4 py-3 rounded-lg flex items-center transition-colors hover:bg-m7-100 text-gray-700 group mt-2 border border-orange-200 bg-orange-50">
+                <div class="w-8 h-8 rounded-full bg-m7-100 text-m7-500 flex items-center justify-center mr-3 group-hover:bg-m7-500 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-gamepad"></i>
+                </div>
+                <span class="font-medium text-sm">Bonus: SLS Activity</span>
+                <i id="check-m7" class="fa-solid fa-circle-check text-m7-500 ml-auto hidden"></i>
+            </button>
+        </nav>
+        
+        <div class="p-4 border-t">
+            <button onclick="resetData()" class="text-xs text-gray-400 hover:text-red-500 w-full text-center py-2 transition-colors">
+                <i class="fa-solid fa-rotate-right mr-1"></i> Reset Progress
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 h-screen overflow-y-auto bg-slate-50 relative">
+        <!-- Print Header -->
+        <div class="print-only mb-8 text-center border-b pb-4">
+            <h1 class="text-3xl font-bold text-gray-800">FCE Self-Directed Learning Hub - Summary</h1>
+            <p class="text-gray-600">Student Name: _______________________ Date: _________</p>
+        </div>
+
+        <div id="content-area" class="p-4 md:p-8 max-w-5xl mx-auto pb-24">
+            
+            <!-- MODULE 1: DEBRIEF POSTER MAKING -->
+            <section id="module-1" class="module-content fade-in hidden">
+                <div class="bg-white rounded-2xl p-6 md:p-8 shadow-sm border-t-4 border-m1-500 mb-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-full bg-m1-100 text-m1-500 flex items-center justify-center text-2xl shadow-inner">
+                            <i class="fa-solid fa-palette"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-m1-800">Debrief Poster Making</h2>
+                            <p class="text-gray-500">Reflect on your sensory evaluation.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-xl p-6 border border-slate-200 mb-8">
+                        <h3 class="font-bold text-gray-800 text-lg mb-4"><i class="fa-solid fa-list-ul text-m1-500 mr-2"></i>Instructions</h3>
+                        
+                        <div class="space-y-4 text-gray-700">
+                            <p><strong>Task:</strong> Create a poster based on your sensory evaluation of your dish.</p>
+                            
+                            <div class="bg-white p-4 rounded-lg border shadow-sm">
+                                <h4 class="font-bold text-sm mb-2 text-m1-800">Requirements:</h4>
+                                <ul class="list-disc pl-5 space-y-2 text-sm">
+                                    <li>Include the <strong>strengths</strong> that you have indicated in your Applied Module.</li>
+                                    <li>Include the <strong>weaknesses</strong> that you have indicated in your Applied Module.</li>
+                                    <li>You are allowed to use any AI platform to create it (e.g., Canva, Adobe Express).</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 shadow-sm mt-4">
+                                <h4 class="font-bold text-sm mb-2 text-blue-800"><i class="fa-solid fa-robot mr-2"></i>Suggested AI Prompt:</h4>
+                                <p class="text-sm italic text-gray-700 bg-white p-3 rounded border border-gray-200">
+                                    "I am a Secondary One Food and Consumer student. Create a poster showing the sensory evaluation of the stir-fried noodles that I have cooked for my practical examination in terms of appearance, taste and texture for my Applied Module..."
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 text-center border-t pt-6">
+                        <button onclick="markModuleComplete(1)" id="submit-m1" class="bg-m1-500 hover:bg-m1-600 text-white font-bold py-2 px-6 rounded-lg shadow transition">
+                            Mark as Acknowledged
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 2: FOOD SAFETY -->
+            <section id="module-2" class="module-content fade-in hidden">
+                <div class="bg-white rounded-2xl p-6 md:p-8 shadow-sm border-t-4 border-m2-500 mb-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-full bg-m2-100 text-m2-500 flex items-center justify-center text-2xl shadow-inner">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-m2-800">Food Safety & Kitchen Hazards</h2>
+                            <p class="text-gray-500">Keep your food safe and avoid lab accidents.</p>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-gray-800 text-xl"><i class="fa-solid fa-list-check text-m2-500 mr-2"></i>Knowledge Check</h3>
+                            <span id="score-badge-2" class="hidden bg-m2-100 text-m2-800 px-3 py-1 rounded-full text-sm font-bold border border-m2-200"></span>
+                        </div>
+                        <div id="quiz-container-2" class="space-y-6 no-print"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 3: NUTRITION & HEALTH -->
+            <section id="module-3" class="module-content fade-in hidden">
+                <div class="bg-white rounded-2xl p-6 md:p-8 shadow-sm border-t-4 border-m3-500 mb-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-full bg-m3-100 text-m3-500 flex items-center justify-center text-2xl shadow-inner">
+                            <i class="fa-solid fa-apple-whole"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-m3-800">Nutrition & Disease Prevention</h2>
+                            <p class="text-gray-500">Fuel your body right with My Healthy Plate.</p>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-gray-800 text-xl"><i class="fa-solid fa-list-check text-m3-500 mr-2"></i>Knowledge Check</h3>
+                            <span id="score-badge-3" class="hidden bg-m3-100 text-m3-800 px-3 py-1 rounded-full text-sm font-bold border border-m3-200"></span>
+                        </div>
+                        <div id="quiz-container-3" class="space-y-6 no-print"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- MODULE 4: SMART MONEY MANAGEMENT -->
+            <section id="module-4" class="module-content fade-in hidden">
+                <div class="bg-white rounded-2xl p-6 md:p-8 shadow-sm border-t-4 border-m4-500 mb-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-full bg-m4-100 text-m4-500 flex items-center justify-center text-2xl shadow-inner">
+                            <i class="fa-solid fa-wallet"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-m4-800">Smart Money Management</h2>
+                            <p class="text-gray-500">Master your budget and spend wisely.</p>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-gray-800 text-xl"><i class="fa-solid fa-list-check text-m4-500 mr-2"></i>Knowledge Check</h3>
+                            <span id="score-badge-4" class="hidden bg-m4-100 text-m4-800 px-3 py-1 rounded-full text-sm font-bold border border-m4-200"></span>
+                        </div>
+                        <div id="quiz-container-4" class="space-y-6 no-print"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 5: DISCERNING CONSUMER -->
+            <section id="module-5" class="module-content fade-in hidden">
+                <div class="bg-white rounded-2xl p-6 md:p-8 shadow-sm border-t-4 border-m5-500 mb-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-full bg-m5-100 text-m5-500 flex items-center justify-center text-2xl shadow-inner">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-m5-800">The Discerning Consumer</h2>
+                            <p class="text-gray-500">Know your rights and shop smart.</p>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-gray-800 text-xl"><i class="fa-solid fa-list-check text-m5-500 mr-2"></i>Knowledge Check</h3>
+                            <span id="score-badge-5" class="hidden bg-m5-100 text-m5-800 px-3 py-1 rounded-full text-sm font-bold border border-m5-200"></span>
+                        </div>
+                        <div id="quiz-container-5" class="space-y-6 no-print"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 6: EXIT TICKET & MASTER ASSESSMENT -->
+            <section id="module-6" class="module-content fade-in hidden">
+                <div class="bg-white rounded-2xl p-6 md:p-8 shadow-sm border-t-4 border-m6-500 mb-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-full bg-m6-100 text-m6-500 flex items-center justify-center text-2xl shadow-inner">
+                            <i class="fa-solid fa-clipboard-check"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-m6-800">FCE Master Exit Ticket</h2>
+                            <p class="text-gray-500">Final evaluation and reflection.</p>
+                        </div>
+                    </div>
+
+                    <!-- Pre-requisite warning -->
+                    <div id="m6-warning" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8 hidden no-print">
+                        <div class="flex">
+                            <div class="flex-shrink-0"><i class="fa-solid fa-circle-exclamation text-yellow-400"></i></div>
+                            <div class="ml-3">
+                                <p class="text-sm text-yellow-700">You should complete Modules 1-5 before taking the Master Quiz.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reflection Box -->
+                    <div class="mb-8">
+                        <h3 class="font-bold text-gray-800 text-lg mb-3">Personal Reflection</h3>
+                        <textarea id="student-reflection" rows="4" class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-m6-500 focus:border-m6-500 outline-none transition-all" placeholder="Type your reflection here..."></textarea>
+                    </div>
+
+                    <!-- Master Quiz Section -->
+                    <div class="border-t pt-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-gray-800 text-xl"><i class="fa-solid fa-star text-m6-500 mr-2"></i>Master Assessment (12 Qns)</h3>
+                            <span id="score-badge-6" class="hidden bg-m6-100 text-m6-800 px-3 py-1 rounded-full text-sm font-bold border border-m6-200"></span>
+                        </div>
+                        
+                        <div id="master-quiz-start" class="text-center bg-slate-50 p-8 rounded-xl border border-slate-200 no-print">
+                            <i class="fa-solid fa-graduation-cap text-5xl text-slate-300 mb-4"></i>
+                            <p class="mb-4 text-gray-600">This master quiz consists of 12 real-world scenario questions testing your application of concepts from all modules.</p>
+                            <div class="flex justify-center gap-4 flex-wrap">
+                                <button onclick="startMasterQuiz()" class="bg-m6-500 hover:bg-m6-600 text-white font-bold py-3 px-8 rounded-lg shadow transition-colors">
+                                    Start Master Quiz
+                                </button>
+                                <button onclick="openQuestionsModal()" class="bg-white hover:bg-gray-100 text-slate-700 font-bold py-3 px-6 rounded-lg shadow border border-gray-300 transition-colors">
+                                    <i class="fa-solid fa-eye mr-2"></i> Preview All Questions
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="quiz-container-6" class="space-y-6 hidden no-print"></div>
+
+                        <!-- Print Summary Section -->
+                        <div id="summary-section" class="mt-8 pt-8 border-t hidden text-center">
+                            <h3 class="font-bold text-green-600 text-xl mb-2"><i class="fa-solid fa-trophy mr-2"></i>All Completed!</h3>
+                            <div class="print-only text-left mb-8">
+                                <h4 class="font-bold border-b pb-1 mb-2">Scores:</h4>
+                                <ul id="print-scores" class="mb-4"></ul>
+                                <h4 class="font-bold border-b pb-1 mb-2">Reflection:</h4>
+                                <p id="print-reflection" class="italic"></p>
+                            </div>
+                            <button onclick="preparePrint()" class="no-print bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-lg shadow transition-colors inline-flex items-center">
+                                <i class="fa-solid fa-print mr-2"></i> Print / Save Summary
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- MODULE 7: BONUS SLS ACTIVITY -->
+            <section id="module-7" class="module-content fade-in hidden">
+                <div class="bg-white rounded-2xl p-6 md:p-8 shadow-sm border-t-4 border-m7-500 mb-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-full bg-m7-100 text-m7-500 flex items-center justify-center text-2xl shadow-inner">
+                            <i class="fa-solid fa-gamepad"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-m7-800">Bonus Activity</h2>
+                            <p class="text-gray-500">Apply your money management skills.</p>
+                        </div>
+                    </div>
+                    <div class="mt-8 text-center border-t pt-6">
+                        <button onclick="markModuleComplete(7)" id="submit-m7" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg shadow transition">
+                            Mark as Completed
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- QUESTIONS PREVIEW MODAL -->
+    <div id="questions-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl">
+            <div class="p-6 border-b flex justify-between items-center bg-slate-900 text-white rounded-t-2xl">
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-list-check mr-2"></i>Master Assessment Questions Preview</h3>
+                <button onclick="closeQuestionsModal()" class="text-gray-400 hover:text-white text-xl p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-6 flex-1 bg-slate-50" id="modal-questions-list">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="p-4 border-t bg-white rounded-b-2xl text-right">
+                <button onclick="closeQuestionsModal()" class="bg-slate-800 hover:bg-slate-900 text-white font-medium px-6 py-2 rounded-lg text-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA: Quiz Questions ---
+        const moduleQuestions = {
+            m2: [
+                { q: "What is the Temperature Danger Zone where bacteria multiply rapidly?", options: ["0°C to 4°C", "5°C to 60°C", "60°C to 100°C", "-18°C to 0°C"], ans: 1, exp: "Food should not be left in the 5°C to 60°C zone." },
+                { q: "When storing raw meat in the chiller, where should it be placed?", options: ["On the top shelf", "Next to cooked food", "On the bottom shelf", "In the vegetable crisper"], ans: 2, exp: "Raw meat must be on the bottom shelf." },
+                { q: "Which of the following is an example of Physical Contamination?", options: ["Bleach splashing into soup", "Bacteria from unwashed hands", "A strand of hair found in a sandwich", "Mould growing on bread"], ans: 2, exp: "Foreign objects like hair cause physical contamination." },
+                { q: "To prevent cuts in the kitchen, what is a crucial safety rule regarding knives?", options: ["Always place them in the wash basin to soak", "Never place them into the wash basin", "Store them loosely in a drawer", "Catch them if they fall"], ans: 1, exp: "Never put knives in the sink basin to soak." }
+            ],
+            m3: [
+                { q: "Based on My Healthy Plate, how much of your plate should consist of fruits and vegetables?", options: ["Quarter (1/4)", "Half (1/2)", "Three-quarters (3/4)", "The whole plate"], ans: 1, exp: "Half your plate should be fruits and vegetables." },
+                { q: "Which disease is primarily caused by a high intake of sodium (salt) over a long period?", options: ["Type 2 Diabetes", "Obesity", "Hypertension (High Blood Pressure)", "Scurvy"], ans: 2, exp: "High sodium intake is linked to Hypertension." },
+                { q: "If your energy Input (food calories) is greater than your energy Output (physical activity), what happens?", options: ["Weight loss", "Weight gain", "Weight remains stable", "Immediate muscle growth"], ans: 1, exp: "Excess calories are stored as fat." },
+                { q: "Why are wholegrains (like brown rice) recommended to prevent Type 2 Diabetes?", options: ["They taste sweeter", "They release sugar slowly into the bloodstream", "They contain zero calories", "They are cheaper than white rice"], ans: 1, exp: "They release sugar slowly into the bloodstream." }
+            ],
+            m4: [
+                { q: "Which of the following is considered a 'Need'?", options: ["A branded pair of sneakers", "A new smartphone for gaming", "Clean drinking water", "A Netflix subscription"], ans: 2, exp: "Water is essential for survival." },
+                { q: "According to the 50/30/20 rule, what does the 20% represent?", options: ["Wants", "Needs", "Savings", "Taxes"], ans: 2, exp: "20% represents savings." },
+                { q: "Before buying an item, a discerning consumer asks '4 Decision Questions'. Which of these is ONE of them?", options: ["Will my friends like it?", "Can I find something cheaper?", "Is it currently trending on TikTok?", "Does it come in my favorite color?"], ans: 1, exp: "Comparing prices to find something cheaper." },
+                { q: "What is a major risk of using a Credit Card irresponsibly?", options: ["Money is immediately deducted from your bank", "You might lose it like cash", "It is only accepted in a few stores", "High interest charges leading to debt"], ans: 3, exp: "Failing to pay incurs high interest charges." }
+            ],
+            m5: [
+                { q: "What is a disadvantage (Con) of Online Shopping?", options: ["Large variety of goods", "Can shop anytime (24/7)", "Easy to compare prices", "Delivery wait times and shipping fees"], ans: 3, exp: "Delivery wait times and shipping fees." },
+                { q: "Under the Lemon Law, which situation does NOT allow a consumer to seek redress?", options: ["The item is defective right out of the box", "The consumer simply changed their mind", "The item does not match the description", "The item breaks after normal use within a few days"], ans: 1, exp: "The law does not cover change of mind." },
+                { q: "A consumer who researches a product, budgets, and avoids impulse buying is called a:", options: ["Reckless Consumer", "Discerning Consumer", "Passive Consumer", "Aggressive Consumer"], ans: 1, exp: "A discerning consumer shows good judgement." },
+                { q: "Which Consumer Right ensures you are protected against products that are hazardous to health or life?", options: ["Right to Information", "Right to be Heard", "Right to Choose", "Right to Safety"], ans: 3, exp: "The Right to Safety protects consumers." }
+            ]
+        };
+
+        // Master Quiz Scenario Questions (12 questions total)
+        const scenarioQuestions = [
+            {
+                q: "Food Safety Scenario: Siti cuts raw chicken on a wooden board, then leaves it on the counter (30°C) for 3 hours before cooking. What hazard has occurred?",
+                options: ["Physical contamination from the wooden board", "Chemical contamination from the air", "Nothing is wrong as long as she boils the chicken later", "The chicken was left in the Temperature Danger Zone, allowing rapid bacterial growth"],
+                ans: 3,
+                exp: "Food left between 5°C and 60°C for more than 2 hours is in the Temperature Danger Zone."
+            },
+            {
+                q: "Food Safety Scenario: You have returned from the wet market in the morning and intend to cook fried chicken wings for dinner. Which is the MOST suitable refrigerator compartment to store the raw chicken wings?",
+                options: ["Freezer", "Vegetable Crisper", "Chiller", "At the side doors"],
+                ans: 2,
+                exp: "The chiller has a temperature ranging from 1 to 4 degree celsius which can prevent the growth of bacteria and the chicken wings do not require defrosting at night."
+            },
+            {
+                q: "Nutrition Scenario: John has a family history of Type 2 Diabetes. He usually orders white rice with fried chicken and sausages. How should he modify his meal using 'My Healthy Plate'?",
+                options: ["Keep the white rice but drink a sugary soda to balance the meal", "Eat only the fried chicken and skip the rice completely", "Change to brown rice, replace the sausage with vegetables, and choose steamed chicken", "Add another serving of fried meat for protein"],
+                ans: 2,
+                exp: "Switching to wholegrains helps slow down blood glucose level. Vegetables are high in vitamins, minerals and dietary fibre and low in calories while steamed chicken is low in fat."
+            },
+            {
+                q: "Nutrition Scenario: Priya consumes 2500 calories a day but spends her weekend playing video games on her bed. According to energy balance, what is likely to happen?",
+                options: ["Weight loss because her brain uses calories", "Weight remains stable", "Immediate muscle growth", "Weight gain because Energy Input is greater than Output"],
+                ans: 3,
+                exp: "Energy input exceeding output leads to weight gain."
+            },
+            {
+                q: "Nutrition Scenario: Ahmad's father has hypertension (high blood pressure). When preparing meals for him, which ingredient should Ahmad strictly limit?",
+                options: ["Wholemeal bread", "Soy sauce and preserved salted vegetables", "Fresh fruits", "Plain water"],
+                ans: 1,
+                exp: "Soy sauce and preserved foods contain very high amounts of sodium."
+            },
+            {
+                q: "Nutrition Scenario: Sarah is eating out at the hawker centre and wants to make a healthier choice. Which action aligns best with the Healthier Dining Programme (HDP)?",
+                options: ["Ordering a deep-fried dish because it's cooked in hot oil", "Choosing noodle soup instead of fried noodles and asking for less gravy", "Drinking a large bubble tea with 100% sugar", "Eating two portions of white rice to ensure she is full"],
+                ans: 1,
+                exp: "Soup-based dishes with less gravy lower fat and sodium intake."
+            },
+            {
+                q: "Money Management Scenario: Sarah receives $50 a week. She wants an $80 branded bag but needs to pay $25 a week for meals. Following the 50/30/20 rule, how should she handle this?",
+                options: ["Buy it immediately using her meal money", "Categorize it as a 'Want' and save her 'Wants' portion ($15/week) until she can afford it", "Put all her money into savings and skip meals", "Borrow money from a friend to buy it now"],
+                ans: 1,
+                exp: "Save her wants portion ($15/week) until she can afford it."
+            },
+            {
+                q: "Money Management Scenario: Tom wants a $150 jacket but only has $50. He uses a credit card to pay the rest, intending to pay it back 'someday'. What is the biggest danger?",
+                options: ["He might lose the physical card", "The card is only accepted online", "The money is immediately deducted from his bank", "High interest charges will accumulate, leading to a debt spiral"],
+                ans: 3,
+                exp: "High interest charges can lead to debt."
+            },
+            {
+                q: "Money Management Scenario: Wei Ting sees a trendy branded bag on sale and already has three similar bags at home. To be a discerning consumer, which question is the MOST appropriate for her to ask right now?",
+                options: ["Can I find something cheaper?", "Do I already have the item?", "Does my favorite celebrity own it?", "How can I get a higher credit limit?"],
+                ans: 1,
+                exp: "Asking if she already has the item prevents impulse buys."
+            },
+            {
+                q: "Consumer Scenario: David buys wireless earphones and discovers the right earbud is broken out of the box. The store manager says 'No refunds'. Under the Lemon Law, what are David's rights?",
+                options: ["He has the right to request a repair, replacement, or refund since it is a defective good", "He cannot do anything because he already left the store", "He must fix it himself or pay another shop", "He can only get a refund if he bought it online"],
+                ans: 0,
+                exp: "The Lemon Law protects against defective goods."
+            },
+            {
+                q: "Consumer Scenario: Lisa wants to buy a new laptop. She checks her budget, reads online reviews, and compares prices across three shops before purchasing. What term best describes Lisa?",
+                options: ["Passive Consumer", "Discerning Consumer", "Reckless Consumer", "Impulse Buyer"],
+                ans: 1,
+                exp: "A discerning consumer shows good judgement."
+            }
+        ];
+
+        let userData = {
+            progress: { m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0 },
+            scores: { m2: 0, m3: 0, m4: 0, m5: 0, m6: 0 },
+            reflection: "",
+            masterQuizReady: false
+        };
+
+        let currentMasterQuiz = [];
+
+        function initApp() {
+            const savedData = localStorage.getItem('fceHubData_v2');
+            if (savedData) {
+                userData = JSON.parse(savedData);
+            }
+
+            document.getElementById('student-reflection').addEventListener('input', (e) => {
+                userData.reflection = e.target.value;
+                saveData();
+            });
+
+            document.getElementById('mobile-menu-btn').addEventListener('click', toggleMobileMenu);
+
+            updateNavUI();
+            updateOverallProgress();
+            
+            renderModuleQuiz(2, 'm2');
+            renderModuleQuiz(3, 'm3');
+            renderModuleQuiz(4, 'm4');
+            renderModuleQuiz(5, 'm5');
+            
+            updateCompletionButtons();
+            document.getElementById('student-reflection').value = userData.reflection || "";
+
+            if (userData.progress.m6 === 100) {
+                document.getElementById('master-quiz-start').classList.add('hidden');
+                document.getElementById('summary-section').classList.remove('hidden');
+                document.getElementById('score-badge-6').classList.remove('hidden');
+                document.getElementById('score-badge-6').innerText = `Score: ${userData.scores.m6}/12`;
+            }
+
+            switchModule(1);
+        }
+
+        function saveData() {
+            localStorage.setItem('fceHubData_v2', JSON.stringify(userData));
+            updateOverallProgress();
+            updateNavUI();
+        }
+
+        function resetData() {
+            if(confirm("Are you sure you want to reset all your progress?")) {
+                localStorage.removeItem('fceHubData_v2');
+                location.reload();
+            }
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        }
+
+        function switchModule(modId) {
+            document.querySelectorAll('.module-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('#nav-links button').forEach(el => {
+                el.classList.remove('bg-gray-100', 'border-l-4');
+                for(let i=1; i<=7; i++) el.classList.remove(`border-m${i}-500`);
+            });
+
+            const targetMod = document.getElementById(`module-${modId}`);
+            if (targetMod) targetMod.classList.remove('hidden');
+            
+            const navBtn = document.getElementById(`nav-m${modId}`);
+            if (navBtn) {
+                navBtn.classList.add('bg-gray-100', 'border-l-4', `border-m${modId}-500`);
+            }
+
+            if (modId === 6) {
+                const requiredProgress = (userData.progress.m1 + userData.progress.m2 + userData.progress.m3 + userData.progress.m4 + userData.progress.m5) / 5;
+                if (requiredProgress < 100) {
+                    document.getElementById('m6-warning').classList.remove('hidden');
+                } else {
+                    document.getElementById('m6-warning').classList.add('hidden');
+                }
+            }
+
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+            }
+        }
+
+        function updateNavUI() {
+            for (let i = 1; i <= 7; i++) {
+                const checkIcon = document.getElementById(`check-m${i}`);
+                if (userData.progress[`m${i}`] === 100) {
+                    checkIcon.classList.remove('hidden');
+                } else {
+                    checkIcon.classList.add('hidden');
+                }
+
+                if ([2, 3, 4, 5, 6].includes(i) && userData.progress[`m${i}`] === 100) {
+                    const badge = document.getElementById(`score-badge-${i}`);
+                    if (badge) {
+                        badge.classList.remove('hidden');
+                        const totalQs = i === 6 ? 12 : moduleQuestions[`m${i}`].length;
+                        badge.innerText = `Score: ${userData.scores[`m${i}`]}/${totalQs}`;
+                    }
+                }
+            }
+        }
+
+        function updateOverallProgress() {
+            let total = 0;
+            const coreModules = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'];
+            for (const key of coreModules) {
+                total += userData.progress[key];
+            }
+            const percentage = Math.round(total / 6);
+            document.getElementById('overall-progress-text').innerText = `${percentage}%`;
+            document.getElementById('overall-progress-bar').style.width = `${percentage}%`;
+
+            if (percentage === 100 && userData.progress.m6 === 100) {
+                 document.getElementById('summary-section').classList.remove('hidden');
+            }
+        }
+        
+        function markModuleComplete(modId) {
+            userData.progress[`m${modId}`] = 100;
+            saveData();
+            updateCompletionButtons();
+            
+            const btn = document.getElementById(`submit-m${modId}`);
+            btn.innerText = "Completed!";
+            btn.classList.add('bg-green-500', 'hover:bg-green-600', 'text-white');
+            
+            setTimeout(() => {
+                if (modId < 7) switchModule(modId + 1);
+            }, 1000);
+        }
+        
+        function updateCompletionButtons() {
+            [1, 7].forEach(id => {
+                if (userData.progress[`m${id}`] === 100) {
+                    const btn = document.getElementById(`submit-m${id}`);
+                    if(btn) {
+                        btn.innerText = "Completed!";
+                        btn.className = "font-bold py-2 px-6 rounded-lg shadow transition bg-green-500 hover:bg-green-600 text-white";
+                    }
+                }
+            });
+        }
+
+        function renderModuleQuiz(modNum, modKey) {
+            const container = document.getElementById(`quiz-container-${modNum}`);
+            if (!container) return;
+            
+            const questions = moduleQuestions[modKey];
+            let html = '';
+
+            if (userData.progress[modKey] === 100) {
+                html = `
+                    <div class="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
+                        <i class="fa-solid fa-circle-check text-4xl text-green-500 mb-3"></i>
+                        <h4 class="font-bold text-green-800 text-lg mb-2">Module Completed!</h4>
+                        <p class="text-green-700 mb-4">Your highest score: ${userData.scores[modKey]} / ${questions.length}</p>
+                        <button onclick="resetModuleQuiz('${modKey}', ${modNum})" class="text-sm bg-white text-gray-600 hover:text-gray-800 py-1 px-4 rounded border shadow-sm transition">Retake Quiz</button>
+                    </div>
+                `;
+                container.innerHTML = html;
+                return;
+            }
+
+            questions.forEach((q, index) => {
+                html += `
+                    <div class="quiz-card bg-white border border-gray-200 rounded-xl p-5 shadow-sm" id="q-container-${modKey}-${index}">
+                        <p class="font-bold text-gray-800 mb-3"><span class="text-gray-400 mr-2">${index + 1}.</span> ${q.q}</p>
+                        <div class="space-y-2">
+                `;
+                q.options.forEach((opt, optIndex) => {
+                    html += `
+                        <button onclick="handleAnswer('${modKey}', ${index}, ${optIndex})" 
+                                id="btn-${modKey}-${index}-${optIndex}"
+                                class="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-sm text-gray-700 flex justify-between items-center">
+                            <span>${opt}</span>
+                            <i id="icon-${modKey}-${index}-${optIndex}" class="fa-solid hidden"></i>
+                        </button>
+                    `;
+                });
+                html += `</div><div id="feedback-${modKey}-${index}" class="mt-4 p-3 rounded-lg text-sm hidden"></div></div>`;
+            });
+
+            html += `
+                <div class="text-right mt-6">
+                    <button onclick="submitModuleQuiz('${modKey}', ${modNum})" id="submit-${modKey}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow transition opacity-50 cursor-not-allowed" disabled>
+                        Submit Answers
+                    </button>
+                </div>
+            `;
+            container.innerHTML = html;
+            window[`quizState_${modKey}`] = { answers: new Array(questions.length).fill(null), scored: false };
+        }
+
+        function handleAnswer(modKey, qIndex, optIndex) {
+            const state = window[`quizState_${modKey}`];
+            if (state.scored) return;
+
+            state.answers[qIndex] = optIndex;
+            const q = moduleQuestions[modKey];
+            
+            for (let i = 0; i < q[qIndex].options.length; i++) {
+                const btn = document.getElementById(`btn-${modKey}-${qIndex}-${i}`);
+                btn.classList.remove('bg-blue-50', 'border-blue-400', 'ring-2', 'ring-blue-200');
+                btn.classList.add('border-gray-200');
+            }
+
+            const selectedBtn = document.getElementById(`btn-${modKey}-${qIndex}-${optIndex}`);
+            selectedBtn.classList.remove('border-gray-200');
+            selectedBtn.classList.add('bg-blue-50', 'border-blue-400', 'ring-2', 'ring-blue-200');
+
+            if (!state.answers.includes(null)) {
+                const submitBtn = document.getElementById(`submit-${modKey}`);
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                submitBtn.classList.add(`bg-m${modKey.replace('m','')}-500`, `hover:bg-m${modKey.replace('m','')}-600`);
+            }
+        }
+
+        function submitModuleQuiz(modKey, modNum) {
+            const state = window[`quizState_${modKey}`];
+            if (state.answers.includes(null)) return;
+            state.scored = true;
+
+            const questions = moduleQuestions[modKey];
+            let score = 0;
+
+            questions.forEach((q, index) => {
+                const userAns = state.answers[index];
+                const isCorrect = userAns === q.ans;
+                const feedbackDiv = document.getElementById(`feedback-${modKey}-${index}`);
+                const selectedBtn = document.getElementById(`btn-${modKey}-${index}-${userAns}`);
+                
+                selectedBtn.classList.remove('bg-blue-50', 'border-blue-400', 'ring-2', 'ring-blue-200');
+                
+                if (isCorrect) {
+                    score++;
+                    selectedBtn.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+                    document.getElementById(`icon-${modKey}-${index}-${userAns}`).className = "fa-solid fa-check text-green-600";
+                    feedbackDiv.className = "mt-4 p-3 rounded-lg text-sm bg-green-50 text-green-800 border border-green-200 fade-in";
+                    feedbackDiv.innerHTML = `<strong>Correct!</strong> ${q.exp}`;
+                } else {
+                    selectedBtn.classList.add('bg-red-100', 'border-red-500', 'text-red-800');
+                    document.getElementById(`icon-${modKey}-${index}-${userAns}`).className = "fa-solid fa-xmark text-red-600";
+                    
+                    const correctBtn = document.getElementById(`btn-${modKey}-${index}-${q.ans}`);
+                    correctBtn.classList.remove('border-gray-200');
+                    correctBtn.classList.add('bg-green-50', 'border-green-500', 'border-dashed');
+                    document.getElementById(`icon-${modKey}-${index}-${q.ans}`).className = "fa-solid fa-check text-green-600";
+
+                    feedbackDiv.className = "mt-4 p-3 rounded-lg text-sm bg-red-50 text-red-800 border border-red-200 fade-in";
+                    feedbackDiv.innerHTML = `<strong>Incorrect.</strong> ${q.exp}`;
+                }
+                
+                for (let i = 0; i < q.options.length; i++) {
+                    document.getElementById(`btn-${modKey}-${index}-${i}`).disabled = true;
+                }
+                feedbackDiv.classList.remove('hidden');
+            });
+
+            userData.progress[modKey] = 100;
+            if (score > userData.scores[modKey]) userData.scores[modKey] = score;
+            saveData();
+
+            const submitBtn = document.getElementById(`submit-${modKey}`);
+            submitBtn.innerText = "Module Completed! Continue";
+            submitBtn.onclick = () => { if (modNum < 6) switchModule(modNum + 1); };
+        }
+
+        function resetModuleQuiz(modKey, modNum) {
+            renderModuleQuiz(modNum, modKey);
+        }
+
+        function startMasterQuiz() {
+            document.getElementById('master-quiz-start').classList.add('hidden');
+            const container = document.getElementById('quiz-container-6');
+            container.classList.remove('hidden');
+
+            currentMasterQuiz = [...scenarioQuestions].sort(() => 0.5 - Math.random());
+            
+            let html = '';
+            currentMasterQuiz.forEach((q, index) => {
+                html += `
+                    <div class="quiz-card bg-white border border-gray-200 rounded-xl p-5 shadow-sm" id="q-container-m6-${index}">
+                        <p class="font-bold text-gray-800 mb-3"><span class="text-gray-400 mr-2">${index + 1}.</span> ${q.q}</p>
+                        <div class="space-y-2">
+                `;
+                q.options.forEach((opt, optIndex) => {
+                    html += `
+                        <button onclick="handleMasterAnswer(${index}, ${optIndex})" 
+                                id="btn-m6-${index}-${optIndex}"
+                                class="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-sm text-gray-700 flex justify-between items-center">
+                            <span>${opt}</span>
+                            <i id="icon-m6-${index}-${optIndex}" class="fa-solid hidden"></i>
+                        </button>
+                    `;
+                });
+                html += `</div></div>`;
+            });
+
+            html += `
+                <div class="text-center mt-8">
+                    <button onclick="submitMasterQuiz()" id="submit-m6" class="bg-m6-500 hover:bg-m6-600 text-white font-bold py-3 px-8 rounded-lg shadow transition opacity-50 cursor-not-allowed" disabled>
+                        Submit Master Quiz
+                    </button>
+                </div>
+            `;
+            container.innerHTML = html;
+            window[`quizState_m6`] = { answers: new Array(12).fill(null), scored: false };
+        }
+
+        function handleMasterAnswer(qIndex, optIndex) {
+            const state = window[`quizState_m6`];
+            if (state.scored) return;
+
+            state.answers[qIndex] = optIndex;
+            const q = currentMasterQuiz;
+            
+            for (let i = 0; i < q[qIndex].options.length; i++) {
+                const btn = document.getElementById(`btn-m6-${qIndex}-${i}`);
+                btn.classList.remove('bg-slate-50', 'border-slate-400', 'ring-2', 'ring-slate-200');
+                btn.classList.add('border-gray-200');
+            }
+
+            const selectedBtn = document.getElementById(`btn-m6-${qIndex}-${optIndex}`);
+            selectedBtn.classList.remove('border-gray-200');
+            selectedBtn.classList.add('bg-slate-50', 'border-slate-400', 'ring-2', 'ring-slate-200');
+
+            if (!state.answers.includes(null)) {
+                const submitBtn = document.getElementById(`submit-m6`);
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function submitMasterQuiz() {
+            const state = window[`quizState_m6`];
+            if (state.answers.includes(null)) return;
+            state.scored = true;
+
+            let score = 0;
+            currentMasterQuiz.forEach((q, index) => {
+                const userAns = state.answers[index];
+                const isCorrect = userAns === q.ans;
+                const selectedBtn = document.getElementById(`btn-m6-${index}-${userAns}`);
+                
+                selectedBtn.classList.remove('bg-slate-50', 'border-slate-400', 'ring-2', 'ring-slate-200');
+                
+                if (isCorrect) {
+                    score++;
+                    selectedBtn.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+                    document.getElementById(`icon-m6-${index}-${userAns}`).className = "fa-solid fa-check text-green-600";
+                } else {
+                    selectedBtn.classList.add('bg-red-100', 'border-red-500', 'text-red-800');
+                    document.getElementById(`icon-m6-${index}-${userAns}`).className = "fa-solid fa-xmark text-red-600";
+                    
+                    const correctBtn = document.getElementById(`btn-m6-${index}-${q.ans}`);
+                    correctBtn.classList.remove('border-gray-200');
+                    correctBtn.classList.add('bg-green-50', 'border-green-500', 'border-dashed');
+                    document.getElementById(`icon-m6-${index}-${q.ans}`).className = "fa-solid fa-check text-green-600";
+                }
+                
+                for (let i = 0; i < q.options.length; i++) {
+                    document.getElementById(`btn-m6-${index}-${i}`).disabled = true;
+                }
+            });
+
+            userData.progress.m6 = 100;
+            userData.scores.m6 = score;
+            saveData();
+
+            document.getElementById('submit-m6').classList.add('hidden');
+            const badge = document.getElementById('score-badge-6');
+            badge.classList.remove('hidden');
+            badge.innerText = `Score: ${score}/12`;
+            document.getElementById('summary-section').classList.remove('hidden');
+        }
+
+        // --- QUESTIONS PREVIEW MODAL ---
+        function openQuestionsModal() {
+            const modal = document.getElementById('questions-modal');
+            const listContainer = document.getElementById('modal-questions-list');
+            
+            let html = '<p class="text-xs text-gray-500 mb-2">Below are all 12 current master assessment questions with correct answers highlighted in green:</p>';
+            
+            scenarioQuestions.forEach((q, idx) => {
+                html += `
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                        <p class="font-bold text-slate-800 text-sm mb-2"><span class="text-slate-400 mr-2">Q${idx + 1}.</span> ${q.q}</p>
+                        <ul class="space-y-1 pl-4 text-xs">
+                `;
+                q.options.forEach((opt, optIdx) => {
+                    const isCorrect = optIdx === q.ans;
+                    const style = isCorrect ? 'bg-green-50 text-green-800 font-semibold border border-green-300 p-2 rounded' : 'text-gray-600 p-1';
+                    html += `<li class="${style}">• ${opt} ${isCorrect ? '<i class="fa-solid fa-check text-green-600 ml-2"></i> (Correct Answer)' : ''}</li>`;
+                });
+                html += `</ul><p class="text-xs text-gray-500 mt-2 italic"><strong>Explanation:</strong> ${q.exp}</p></div>`;
+            });
+            
+            listContainer.innerHTML = html;
+            modal.classList.remove('hidden');
+        }
+
+        function closeQuestionsModal() {
+            document.getElementById('questions-modal').classList.add('hidden');
+        }
+
+        function preparePrint() {
+            const scoreHtml = `
+                <li><strong>Module 2 (Food Safety):</strong> ${userData.scores.m2} / ${moduleQuestions.m2.length}</li>
+                <li><strong>Module 3 (Nutrition):</strong> ${userData.scores.m3} / ${moduleQuestions.m3.length}</li>
+                <li><strong>Module 4 (Money Management):</strong> ${userData.scores.m4} / ${moduleQuestions.m4.length}</li>
+                <li><strong>Module 5 (Consumer):</strong> ${userData.scores.m5} / ${moduleQuestions.m5.length}</li>
+                <li class="mt-2 text-lg"><strong>Master Quiz:</strong> ${userData.scores.m6} / 12</li>
+            `;
+            document.getElementById('print-scores').innerHTML = scoreHtml;
+            document.getElementById('print-reflection').innerText = userData.reflection || "No reflection provided.";
+            window.print();
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
